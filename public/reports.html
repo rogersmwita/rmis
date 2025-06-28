@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Road Damage Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #666;
+        }
+
+        .btn-success {
+            background: #4CAF50;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .report-card {
+            background: white;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .report-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .road-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .report-details {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .damage-breakdown {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .damage-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid #e1e5e9;
+        }
+
+        .damage-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .back-btn {
+            background: #666;
+            margin-bottom: 20px;
+        }
+
+        .no-reports {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 40px;
+        }
+
+        .export-btn {
+            background: #28a745;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Reports & Analytics</h1>
+            <p>Comprehensive reports and statistics for road damage surveys</p>
+        </div>
+
+        <div class="content">
+            <button onclick="window.location.href='manager.html'" class="btn back-btn">← Back to Manager Panel</button>
+
+            <div id="message"></div>
+
+            <!-- Statistics Overview -->
+            <div class="section">
+                <h2>📈 Overview Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalRoads">0</div>
+                        <div class="stat-label">Total Roads</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalPhotos">0</div>
+                        <div class="stat-label">Total Photos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalBudget">$0</div>
+                        <div class="stat-label">Total Budget</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="completedSurveys">0</div>
+                        <div class="stat-label">Completed Surveys</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="section">
+                <h2>🔍 Search Reports</h2>
+                <div class="filters">
+                    <div class="form-group">
+                        <label for="roadSearch">Road Name</label>
+                        <input type="text" id="roadSearch" placeholder="Search by road name...">
+                    </div>
+                    <div class="form-group">
+                        <label for="startDate">Start Date</label>
+                        <input type="date" id="startDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">End Date</label>
+                        <input type="date" id="endDate">
+                    </div>
+                    <div class="form-group">
+                        <button onclick="searchReports()" class="btn">Search</button>
+                        <button onclick="exportReports()" class="btn export-btn">Export</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports List -->
+            <div class="section">
+                <h2>📋 Detailed Reports</h2>
+                <div id="reportsList" class="reports-grid">
+                    <div class="no-reports">Search for reports to view detailed information</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is logged in and is a manager
+        let currentUser = JSON.parse(localStorage.getItem('user'));
+        
+        if (!currentUser) {
+            console.log('No user found in localStorage, redirecting to login');
+            window.location.href = 'index.html';
+        }
+
+        // Debug: Show current user info
+        console.log('=== REPORTS USER DEBUG INFO ===');
+        console.log('Current user object:', currentUser);
+        console.log('User email:', currentUser?.email);
+        console.log('User role:', currentUser?.role);
+        console.log('Role comparison:', currentUser?.role === 'Manager');
+        console.log('================================');
+
+        // More flexible role checking
+        if (!currentUser.role || (currentUser.role !== 'Manager' && currentUser.role !== 'manager' && currentUser.role !== 'MANAGER')) {
+            console.error('Role validation failed. Expected: Manager, Got:', currentUser.role);
+            alert('Access denied. Only managers can view this page. Your role is: ' + currentUser.role);
+            localStorage.removeItem('user'); // Clear invalid user data
+            window.location.href = 'index.html';
+        }
+
+        // Add logout function
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+
+        // Display user info
+        document.getElementById('userInfo').textContent = `Logged in as: ${currentUser.fullname} (${currentUser.email})`;
+
+        // Load initial data
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStatistics();
+        });
+
+        async function loadStatistics() {
+            try {
+                const [roadsResponse, photosResponse] = await Promise.all([
+                    fetch('/roads'),
+                    fetch('/get-all-photos')
+                ]);
+
+                const roads = await roadsResponse.json();
+                const photosData = await photosResponse.json();
+                const photos = photosData.photos || [];
+
+                // Calculate statistics
+                const totalRoads = roads.length;
+                const totalPhotos = photos.length;
+                const totalBudget = photos.reduce((sum, photo) => sum + (photo.roadBudget || 0), 0);
+                const completedSurveys = roads.filter(road => road.status === 'completed').length;
+
+                // Update statistics display
+                document.getElementById('totalRoads').textContent = totalRoads;
+                document.getElementById('totalPhotos').textContent = totalPhotos;
+                document.getElementById('totalBudget').textContent = `$${totalBudget.toLocaleString()}`;
+                document.getElementById('completedSurveys').textContent = completedSurveys;
+
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+        }
+
+        async function searchReports() {
+            const roadName = document.getElementById('roadSearch').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            try {
+                let url = '/search-roads?';
+                if (roadName) url += `roadName=${encodeURIComponent(roadName)}&`;
+                if (endDate) url += `endDate=${endDate}`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                displayReports(data.roads);
+            } catch (error) {
+                showMessage('Error searching reports: ' + error.message, 'error');
+            }
+        }
+
+        async function displayReports(roads) {
+            const container = document.getElementById('reportsList');
+            
+            if (!roads || roads.length === 0) {
+                container.innerHTML = '<div class="no-reports">No reports found</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            
+            for (let road of roads) {
+                // Get detailed report for each road
+                try {
+                    const reportResponse = await fetch(`/road-report/${road._id}`);
+                    const report = await reportResponse.json();
+                    
+                    const card = document.createElement('div');
+                    card.className = 'report-card';
+                    card.innerHTML = `
+                        <div class="road-name">${road._id}</div>
+                        <div class="report-details">
+                            <strong>Total Budget:</strong> $${road.totalBudget.toLocaleString()}<br>
+                            <strong>Photo Count:</strong> ${road.photoCount}<br>
+                            <strong>Survey End Date:</strong> ${road.surveyEndDate ? new Date(road.surveyEndDate).toLocaleDateString() : 'Not set'}<br>
+                            <strong>Current Stage:</strong> ${road.stage || 'survey'}<br>
+                            <strong>Contractor:</strong> ${road.contractor || 'Not assigned'}<br>
+                            <strong>Repair Date:</strong> ${road.repairDate ? new Date(road.repairDate).toLocaleDateString() : 'Not set'}
+                        </div>
+                        
+                        ${report.photos && report.photos.length > 0 ? `
+                            <div class="damage-breakdown">
+                                <h4>Damage Breakdown</h4>
+                                ${getDamageBreakdown(report.photos)}
+                            </div>
+                        ` : ''}
+                        
+                        <div style="margin-top: 15px;">
+                            <button onclick="viewDetailedReport('${road._id}')" class="btn btn-success">View Full Report</button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                } catch (error) {
+                    console.error('Error loading detailed report for road:', road._id, error);
+                }
+            }
+        }
+
+        function getDamageBreakdown(photos) {
+            const damageCounts = {};
+            photos.forEach(photo => {
+                damageCounts[photo.damageClass] = (damageCounts[photo.damageClass] || 0) + 1;
+            });
+
+            return Object.entries(damageCounts)
+                .map(([damageClass, count]) => `
+                    <div class="damage-item">
+                        <span>${damageClass}</span>
+                        <span>${count} photos</span>
+                    </div>
+                `).join('');
+        }
+
+        async function viewDetailedReport(roadName) {
+            try {
+                const response = await fetch(`/road-report/${roadName}`);
+                const report = await response.json();
+                
+                // Create a detailed report view
+                const reportWindow = window.open('', '_blank');
+                reportWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Detailed Report - ${roadName}</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; margin: 20px; }
+                            .header { background: #667eea; color: white; padding: 20px; text-align: center; }
+                            .content { padding: 20px; }
+                            .photo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+                            .photo-item { border: 1px solid #ddd; padding: 15px; border-radius: 8px; }
+                            .photo-item img { width: 100%; height: 200px; object-fit: cover; border-radius: 4px; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header">
+                            <h1>Detailed Report: ${roadName}</h1>
+                        </div>
+                        <div class="content">
+                            <h2>Summary</h2>
+                            <p><strong>Total Photos:</strong> ${report.totalPhotos}</p>
+                            <p><strong>Total Budget:</strong> $${report.totalBudget.toLocaleString()}</p>
+                            <p><strong>Survey Period:</strong> ${report.surveyStartDate ? new Date(report.surveyStartDate).toLocaleDateString() : 'Not set'} - ${report.surveyEndDate ? new Date(report.surveyEndDate).toLocaleDateString() : 'Not set'}</p>
+                            <p><strong>Contractor:</strong> ${report.contractor || 'Not assigned'}</p>
+                            <p><strong>Repair Date:</strong> ${report.repairDate ? new Date(report.repairDate).toLocaleDateString() : 'Not set'}</p>
+                            
+                            <h2>Photos</h2>
+                            <div class="photo-grid">
+                                ${report.photos.map(photo => `
+                                    <div class="photo-item">
+                                        <img src="${photo.photoUrl}" alt="Damage photo">
+                                        <p><strong>Damage Class:</strong> ${photo.damageClass}</p>
+                                        <p><strong>Budget:</strong> $${photo.roadBudget}</p>
+                                        <p><strong>Comment:</strong> ${photo.comment || 'No comment'}</p>
+                                        <p><strong>Date:</strong> ${new Date(photo.dateCreated).toLocaleDateString()}</p>
+                                        <p><strong>Survey Start:</strong> ${photo.surveyStartDate ? new Date(photo.surveyStartDate).toLocaleDateString() : 'Not set'}</p>
+                                        <p><strong>Survey End:</strong> ${photo.surveyEndDate ? new Date(photo.surveyEndDate).toLocaleDateString() : 'Not set'}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                `);
+                reportWindow.document.close();
+            } catch (error) {
+                showMessage('Error loading detailed report: ' + error.message, 'error');
+            }
+        }
+
+        function exportReports() {
+            // Implementation for exporting reports to CSV/Excel
+            showMessage('Export feature coming soon!', 'success');
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = message;
+            
+            setTimeout(() => {
+                messageDiv.textContent = '';
+                messageDiv.className = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html> 

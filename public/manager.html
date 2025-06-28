@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Manager Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+    }
+    .filters {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    input, select, button {
+      padding: 10px;
+      font-size: 14px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      font-size: 13px;
+    }
+    .budget-input {
+      width: 100px;
+    }
+    .save-btn {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .export-buttons {
+      text-align: center;
+      margin: 10px;
+    }
+    .export-buttons button {
+      margin: 0 5px;
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .export-buttons button:hover {
+      background: #0056b3;
+    }
+    .manager-actions {
+      margin-bottom: 20px;
+    }
+    .action-grid {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .action-btn {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .icon {
+      font-size: 1.5em;
+    }
+    .text {
+      font-size: 14px;
+    }
+    .search-section {
+      margin-bottom: 20px;
+    }
+    .search-form {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .btn {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    /* Clickable row styling */
+    #reportTable tbody tr:hover {
+      background-color: #f8f9fa;
+      transition: background-color 0.2s ease;
+    }
+    #reportTable tbody tr:active {
+      background-color: #e9ecef;
+    }
+    /* Modal improvements */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: none;
+    }
+    .modal-content {
+      background: white;
+      margin: 5% auto;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 800px;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    .contractor-modal {
+      max-width: 500px;
+    }
+    /* Button improvements */
+    .btn-assign {
+      background: #28a745;
+    }
+    .btn-view {
+      background: #007bff;
+    }
+    .btn-close {
+      background: #dc3545;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Manager Dashboard</h2>
+
+  <!-- Add user info and logout button -->
+  <div style="text-align: right; margin-bottom: 20px;">
+    <span id="userInfo" style="margin-right: 15px; color: #666;"></span>
+    <button onclick="logout()" style="background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Logout</button>
+  </div>
+
+  <button onclick="window.location.href='index.html'" style="background: #666; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-bottom: 20px;">← Back to Login</button>
+
+  <div class="filters">
+    <input type="text" id="filterRoad" placeholder="Filter by Road" />
+    <input type="date" id="startDate" />
+    <input type="date" id="endDate" />
+    <button onclick="applyFilters()">Apply Filters</button>
+  </div>
+
+  <div class="export-buttons">
+    <button onclick="exportCSV()">Export CSV</button>
+    <button onclick="exportPDF()">Export PDF</button>
+  </div>
+
+  <div class="manager-actions">
+    <h2>🔧 Manager Actions</h2>
+    <div class="action-grid">
+      <button onclick="window.location.href='contractor-assignment.html'" class="action-btn">
+        <span class="icon">🏗️</span>
+        <span class="text">Contractor Assignment</span>
+      </button>
+      <button onclick="window.location.href='reports.html'" class="action-btn">
+        <span class="icon">📊</span>
+        <span class="text">Reports</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="search-section">
+    <h2>🔍 Search Completed Surveys</h2>
+    <div class="search-form">
+      <input type="text" id="roadSearch" placeholder="Search by road name...">
+      <input type="date" id="endDateSearch" placeholder="End date">
+      <button onclick="searchRoads()" class="btn">Search</button>
+      <button onclick="resetSearch()" class="btn" style="background: #666;">Reset</button>
+    </div>
+  </div>
+
+  <table id="reportTable">
+    <thead>
+      <tr>
+        <th>Road Name</th>
+        <th>Photo Count</th>
+        <th>Users</th>
+        <th>Latest Date</th>
+        <th>Stage</th>
+        <th>Contractor</th>
+        <th>Total Budget</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+
+  <!-- Road Report Modal -->
+  <div id="roadReportModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div style="background: white; margin: 5% auto; padding: 20px; width: 90%; max-width: 800px; max-height: 80vh; overflow-y: auto; border-radius: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 id="modalTitle">Road Report</h3>
+        <button onclick="closeRoadReport()" style="background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Close</button>
+      </div>
+      <div id="roadReportContent"></div>
+      <div style="text-align: center; margin-top: 20px;">
+        <button onclick="printRoadReport()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">Print Report</button>
+        <button onclick="exportRoadReportPDF()" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Export PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contractor Assignment Modal -->
+  <div id="contractorModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div style="background: white; margin: 5% auto; padding: 20px; width: 90%; max-width: 500px; border-radius: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 id="contractorModalTitle">Assign Contractor</h3>
+        <button onclick="closeContractorModal()" style="background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Close</button>
+      </div>
+      <div id="contractorModalContent">
+        <form id="contractorForm">
+          <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Select Contractor:</label>
+            <select id="contractorSelect" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+              <option value="">Choose a contractor...</option>
+            </select>
+          </div>
+          <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Repair Date:</label>
+            <input type="date" id="repairDateInput" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+          </div>
+          <div style="text-align: center; margin-top: 20px;">
+            <button type="submit" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">Approve & Assign</button>
+            <button type="button" onclick="closeContractorModal()" style="background: #666; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Check if user is logged in and is a manager
+    let currentUser = JSON.parse(localStorage.getItem('user'));
+    
+    if (!currentUser) {
+      console.log('No user found in localStorage, redirecting to login');
+      window.location.href = 'index.html';
+    }
+
+    // Debug: Show current user info
+    console.log('=== MANAGER USER DEBUG INFO ===');
+    console.log('Current user object:', currentUser);
+    console.log('User email:', currentUser?.email);
+    console.log('User role:', currentUser?.role);
+    console.log('Role comparison:', currentUser?.role === 'Manager');
+    console.log('================================');
+
+    // More flexible role checking
+    if (!currentUser.role || (currentUser.role !== 'Manager' && currentUser.role !== 'manager' && currentUser.role !== 'MANAGER')) {
+      console.error('Role validation failed. Expected: Manager, Got:', currentUser.role);
+      alert('Access denied. Only managers can view this page. Your role is: ' + currentUser.role);
+      localStorage.removeItem('user'); // Clear invalid user data
+      window.location.href = 'index.html';
+    }
+
+    let allReports = [];
+    let damageCosts = {};
+
+    // Add logout function
+    function logout() {
+      localStorage.removeItem('user');
+      window.location.href = 'index.html';
+    }
+
+    // Display user info
+    document.getElementById('userInfo').textContent = `Logged in as: ${currentUser.fullname} (${currentUser.email})`;
+
+    async function fetchReports() {
+      const res = await fetch('/get-all-photos');
+      const data = await res.json();
+      allReports = data.photos;
+
+      const costRes = await fetch('/damage-class');
+      const costData = await costRes.json();
+      damageCosts = {};
+      costData.forEach(c => {
+        damageCosts[c.damageClass] = c.repairCost;
+      });
+
+      renderTable(allReports);
+    }
+
+    function getStage(p) {
+      if (p.budget) return 'Stage3 (Manager)';
+      if (['approved', 'cancelled', 'rejected'].includes(p.approvalStatus)) return 'Stage2 (Officer)';
+      return 'Stage1 (Surveyor)';
+    }
+
+    function applyFilters() {
+      const road = document.getElementById('filterRoad').value.toLowerCase();
+      const start = document.getElementById('startDate').value;
+      const end = document.getElementById('endDate').value;
+
+      const filtered = allReports.filter(p => {
+        const matchRoad = !road || p.roadName.toLowerCase().includes(road);
+        const matchStart = !start || new Date(p.dateCreated) >= new Date(start);
+        const matchEnd = !end || new Date(p.dateCreated) <= new Date(end);
+        return matchRoad && matchStart && matchEnd;
+      });
+
+      renderTable(filtered);
+    }
+
+    function renderTable(reports) {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+      
+      if (reports.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px;">No reports found</td></tr>';
+        return;
+      }
+
+      // Group reports by road name
+      const roadGroups = {};
+      reports.forEach(p => {
+        if (!roadGroups[p.roadName]) {
+          roadGroups[p.roadName] = {
+            roadName: p.roadName,
+            totalBudget: 0,
+            photoCount: 0,
+            latestDate: null,
+            stage: p.stage || 'survey',
+            contractor: p.contractor || null,
+            repairDate: p.repairDate || null,
+            photos: []
+          };
+        }
+        roadGroups[p.roadName].totalBudget += (p.roadBudget || 0);
+        roadGroups[p.roadName].photoCount += 1;
+        roadGroups[p.roadName].photos.push(p);
+        
+        // Get the latest date
+        if (!roadGroups[p.roadName].latestDate || new Date(p.dateCreated) > new Date(roadGroups[p.roadName].latestDate)) {
+          roadGroups[p.roadName].latestDate = p.dateCreated;
+        }
+      });
+
+      // Convert to array and sort by road name
+      const roadData = Object.values(roadGroups).sort((a, b) => a.roadName.localeCompare(b.roadName));
+
+      roadData.forEach(road => {
+        const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+        tr.onclick = () => viewRoadReport(road.roadName);
+        tr.innerHTML = `
+          <td style="font-weight: 600; color: #007bff;">${road.roadName}</td>
+          <td>${road.photoCount} photos</td>
+          <td>Multiple users</td>
+          <td>${road.latestDate ? new Date(road.latestDate).toLocaleDateString() : '-'}</td>
+          <td>${road.stage}</td>
+          <td>${road.contractor || '-'}</td>
+          <td>${road.totalBudget.toLocaleString()} Tsh</td>
+          <td>
+            <button class="save-btn" onclick="event.stopPropagation(); saveRoadBudget('${road.roadName}')" style="margin-right: 5px;">Save</button>
+            <button onclick="event.stopPropagation(); assignContractor('${road.roadName}')" class="btn btn-assign" style="margin-right: 5px;">Assign Contractor</button>
+            <button onclick="event.stopPropagation(); viewRoadReport('${road.roadName}')" class="btn btn-view">View Report</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function saveRoadBudget(roadName) {
+      const input = document.getElementById(`budget-${roadName}`);
+      const value = parseFloat(input.value);
+      if (!value || value <= 0) {
+        return alert('Enter a valid budget amount.');
+      }
+
+      const res = await fetch(`/update-budget/${roadName}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ budget: value })
+      });
+
+      const data = await res.json();
+      alert(data.message || 'Updated.');
+      fetchReports();
+    }
+
+    function exportCSV() {
+      if (!allReports.length) return alert('No reports to export.');
+      const headers = ['Road', 'Damage Class', 'User', 'Date', 'Stage', 'Contractor', 'Repair Cost', 'Budget'];
+      const rows = allReports.map(p => {
+        const repairCost = damageCosts[p.damageClass] || '-';
+        return [
+          `"${p.roadName}"`,
+          `"${p.damageClass}"`,
+          `"${p.email}"`,
+          `"${new Date(p.dateCreated).toLocaleDateString()}"`,
+          `"${getStage(p)}"`,
+          `"${p.contractor || '-'}"`,
+          `"${repairCost}"`,
+          `"${p.budget || '-'}"`
+        ];
+      });
+
+      let csv = headers.join(',') + '\n' + rows.map(r => r.join(',')).join('\n');
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `manager_report_${Date.now()}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    async function exportPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(12);
+      let y = 10;
+
+      allReports.forEach((p, i) => {
+        if (y > 270) {
+          doc.addPage();
+          y = 10;
+        }
+        const repairCost = damageCosts[p.damageClass] || '-';
+        const lines = [
+          `#${i + 1}`,
+          `Road: ${p.roadName}`,
+          `Damage Class: ${p.damageClass}`,
+          `User: ${p.email}`,
+          `Date: ${new Date(p.dateCreated).toLocaleDateString()}`,
+          `Stage: ${getStage(p)}`,
+          `Contractor: ${p.contractor || '-'}`,
+          `Repair Cost: ${repairCost} TZS`,
+          `Budget: ${p.budget || '-'}`
+        ];
+        lines.forEach((line, index) => {
+          doc.text(line, 10, y + (index * 6));
+        });
+        y += lines.length * 6 + 4;
+      });
+
+      doc.save(`manager_report_${Date.now()}.pdf`);
+    }
+
+    async function searchRoads() {
+      const roadName = document.getElementById('roadSearch').value.toLowerCase();
+      const endDate = document.getElementById('endDateSearch').value;
+      
+      // Filter from the actual data instead of using a separate endpoint
+      let filteredReports = allReports;
+      
+      if (roadName) {
+        filteredReports = filteredReports.filter(p => 
+          p.roadName.toLowerCase().includes(roadName)
+        );
+      }
+      
+      if (endDate) {
+        filteredReports = filteredReports.filter(p => {
+          const photoDate = new Date(p.dateCreated);
+          const searchDate = new Date(endDate);
+          return photoDate <= searchDate;
+        });
+      }
+      
+      renderTable(filteredReports);
+    }
+
+    // Add real-time search as you type
+    document.getElementById('roadSearch').addEventListener('input', function() {
+      searchRoads();
+    });
+
+    // Add real-time search for date
+    document.getElementById('endDateSearch').addEventListener('change', function() {
+      searchRoads();
+    });
+
+    async function assignContractor(roadName) {
+      // Store the road name for the form submission
+      window.currentAssignRoadName = roadName;
+      
+      // Load contractors for the dropdown
+      await loadContractorsForAssignment();
+      
+      // Update modal title
+      document.getElementById('contractorModalTitle').textContent = `Assign Contractor - ${roadName}`;
+      
+      // Show the contractor modal
+      document.getElementById('contractorModal').style.display = 'block';
+    }
+
+    async function loadContractorsForAssignment() {
+      try {
+        const response = await fetch('/contractors');
+        const contractors = await response.json();
+        const select = document.getElementById('contractorSelect');
+        
+        select.innerHTML = '<option value="">Choose a contractor...</option>';
+        contractors.forEach(contractor => {
+          if (contractor.active) {
+            const option = document.createElement('option');
+            option.value = contractor._id;
+            option.textContent = `${contractor.company_name} (${contractor.email})`;
+            select.appendChild(option);
+          }
+        });
+      } catch (error) {
+        console.error('Error loading contractors:', error);
+      }
+    }
+
+    function closeContractorModal() {
+      document.getElementById('contractorModal').style.display = 'none';
+      // Reset the form
+      document.getElementById('contractorForm').reset();
+      window.currentAssignRoadName = null;
+    }
+
+    // Add form submission handler for contractor assignment
+    document.getElementById('contractorForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const roadName = window.currentAssignRoadName;
+      if (!roadName) {
+        alert('No road selected for assignment');
+        return;
+      }
+
+      const contractorId = document.getElementById('contractorSelect').value;
+      const repairDate = document.getElementById('repairDateInput').value;
+
+      if (!contractorId || !repairDate) {
+        alert('Please select contractor and repair date');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/manager-approve/${roadName}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            contractor: contractorId,
+            repairDate: repairDate
+          })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          alert('Road approved for repair! Emails sent to contractor and surveyors.');
+          closeContractorModal();
+          searchRoads(); // Refresh the list
+        } else {
+          alert(result.message || 'Approval failed');
+        }
+      } catch (error) {
+        alert('Network error. Please try again.');
+      }
+    });
+
+    // Close modals when clicking outside of them
+    window.onclick = function(event) {
+      const roadModal = document.getElementById('roadReportModal');
+      const contractorModal = document.getElementById('contractorModal');
+      
+      if (event.target === roadModal) {
+        closeRoadReport();
+      }
+      if (event.target === contractorModal) {
+        closeContractorModal();
+      }
+    }
+
+    async function viewRoadReport(roadName) {
+      try {
+        const response = await fetch(`/road-report/${roadName}`);
+        const data = await response.json();
+        displayRoadReport(data);
+      } catch (error) {
+        console.error('Error loading road report:', error);
+        alert('Error loading road report');
+      }
+    }
+
+    function displayRoadReport(roadData) {
+      const modalTitle = document.getElementById('modalTitle');
+      const modalContent = document.getElementById('roadReportContent');
+      
+      modalTitle.textContent = `Road Report: ${roadData.roadName}`;
+      
+      let photosHtml = '';
+      if (roadData.photos && roadData.photos.length > 0) {
+        photosHtml = `
+          <h4>Photos:</h4>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 10px;">
+            ${roadData.photos.map(photo => `
+              <div style="border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
+                <img src="${photo.photoUrl}" alt="Road damage" style="width: 100%; height: 120px; object-fit: cover; border-radius: 5px;">
+                <p><strong>Damage Class:</strong> ${photo.damageClass}</p>
+                <p><strong>Budget:</strong> ${photo.roadBudget ? photo.roadBudget.toLocaleString() + ' Tsh' : 'N/A'}</p>
+                <p><strong>Date:</strong> ${new Date(photo.dateCreated).toLocaleDateString()}</p>
+                <p><strong>Survey Start:</strong> ${photo.surveyStartDate ? new Date(photo.surveyStartDate).toLocaleDateString() : 'Not set'}</p>
+                <p><strong>Survey End:</strong> ${photo.surveyEndDate ? new Date(photo.surveyEndDate).toLocaleDateString() : 'Not set'}</p>
+                ${photo.comment ? `<p><strong>Comment:</strong> ${photo.comment}</p>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+      
+      modalContent.innerHTML = `
+        <div style="line-height: 1.6;">
+          <h3 style="color: #007bff; margin-bottom: 20px;">${roadData.roadName}</h3>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div>
+              <p><strong>Total Photos:</strong> ${roadData.totalPhotos}</p>
+              <p><strong>Total Budget:</strong> ${roadData.totalBudget.toLocaleString()} Tsh</p>
+              <p><strong>Survey Start Date:</strong> ${roadData.surveyStartDate ? new Date(roadData.surveyStartDate).toLocaleDateString() : 'N/A'}</p>
+              <p><strong>Survey End Date:</strong> ${roadData.surveyEndDate ? new Date(roadData.surveyEndDate).toLocaleDateString() : 'N/A'}</p>
+            </div>
+            <div>
+              <p><strong>Current Stage:</strong> ${roadData.stage || 'Survey'}</p>
+              <p><strong>Assigned Contractor:</strong> ${roadData.contractor || 'Not assigned'}</p>
+              <p><strong>Repair Date:</strong> ${roadData.repairDate ? new Date(roadData.repairDate).toLocaleDateString() : 'Not set'}</p>
+            </div>
+          </div>
+          
+          ${photosHtml}
+        </div>
+      `;
+
+      // Show the modal
+      document.getElementById('roadReportModal').style.display = 'block';
+    }
+
+    function closeRoadReport() {
+      document.getElementById('roadReportModal').style.display = 'none';
+    }
+
+    function printRoadReport() {
+      const printWindow = window.open('', '_blank');
+      const modalContent = document.getElementById('roadReportContent');
+      const title = document.getElementById('modalTitle').textContent;
+      
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>${title}</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; }
+              h3 { color: #007bff; }
+              .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 10px; }
+              .photo-item { border: 1px solid #ddd; padding: 10px; border-radius: 5px; }
+              .photo-item img { width: 100%; height: 120px; object-fit: cover; border-radius: 5px; }
+              @media print { .photo-grid { grid-template-columns: repeat(2, 1fr); } }
+            </style>
+          </head>
+          <body>
+            <h1>${title}</h1>
+            ${modalContent.innerHTML}
+          </body>
+        </html>
+      `);
+      
+      printWindow.document.close();
+      printWindow.print();
+    }
+
+    async function exportRoadReportPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const modalContent = document.getElementById('roadReportContent');
+      const title = document.getElementById('modalTitle').textContent;
+      
+      doc.setFontSize(16);
+      doc.text(title, 20, 20);
+      
+      doc.setFontSize(12);
+      let y = 40;
+      
+      // Extract text content from modal
+      const textContent = modalContent.innerText || modalContent.textContent;
+      const lines = textContent.split('\n').filter(line => line.trim());
+      
+      lines.forEach(line => {
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.text(line, 20, y);
+        y += 8;
+      });
+      
+      doc.save(`road_report_${Date.now()}.pdf`);
+    }
+
+    function resetSearch() {
+      document.getElementById('roadSearch').value = '';
+      document.getElementById('endDateSearch').value = '';
+      renderTable(allReports); // Show all reports
+    }
+
+    fetchReports();
+  </script>
+</body>
+</html>

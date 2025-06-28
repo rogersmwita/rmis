@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contractor Assignment - Road Damage Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .search-section {
+            margin-bottom: 30px;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #4CAF50;
+        }
+
+        .btn-warning {
+            background: #ff9800;
+        }
+
+        .btn-secondary {
+            background: #666;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .roads-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .road-card {
+            background: white;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .road-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .road-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .road-details {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .road-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-approved {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .status-in_repair {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .assignment-form {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .assignment-form select,
+        .assignment-form input {
+            margin-bottom: 10px;
+        }
+
+        .back-btn {
+            background: #666;
+            margin-bottom: 20px;
+        }
+
+        .no-roads {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏗️ Contractor Assignment</h1>
+            <p>Assign contractors to completed road surveys</p>
+        </div>
+
+        <div class="content">
+            <button onclick="window.location.href='manager.html'" class="btn back-btn">← Back to Manager Panel</button>
+
+            <div id="message"></div>
+
+            <div class="section search-section">
+                <h2>🔍 Search Completed Surveys</h2>
+                <div class="search-form">
+                    <div class="form-group">
+                        <label for="roadSearch">Road Name</label>
+                        <input type="text" id="roadSearch" placeholder="Search by road name...">
+                    </div>
+                    <div class="form-group">
+                        <label for="endDateSearch">End Date</label>
+                        <input type="date" id="endDateSearch">
+                    </div>
+                    <div class="form-group">
+                        <button onclick="searchRoads()" class="btn">Search</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📋 Completed Surveys</h2>
+                <div id="roadsList" class="roads-grid">
+                    <div class="no-roads">Search for completed surveys to assign contractors</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is logged in and is a manager
+        let currentUser = JSON.parse(localStorage.getItem('user'));
+        
+        if (!currentUser) {
+            console.log('No user found in localStorage, redirecting to login');
+            window.location.href = 'index.html';
+        }
+
+        // Debug: Show current user info
+        console.log('=== CONTRACTOR ASSIGNMENT USER DEBUG INFO ===');
+        console.log('Current user object:', currentUser);
+        console.log('User email:', currentUser?.email);
+        console.log('User role:', currentUser?.role);
+        console.log('Role comparison:', currentUser?.role === 'Manager');
+        console.log('================================');
+
+        // More flexible role checking
+        if (!currentUser.role || (currentUser.role !== 'Manager' && currentUser.role !== 'manager' && currentUser.role !== 'MANAGER')) {
+            console.error('Role validation failed. Expected: Manager, Got:', currentUser.role);
+            alert('Access denied. Only managers can view this page. Your role is: ' + currentUser.role);
+            localStorage.removeItem('user'); // Clear invalid user data
+            window.location.href = 'index.html';
+        }
+
+        // Add logout function
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+
+        // Display user info
+        document.getElementById('userInfo').textContent = `Logged in as: ${currentUser.fullname} (${currentUser.email})`;
+
+        let allPhotos = [];
+
+        async function loadAllPhotos() {
+            try {
+                const response = await fetch('/get-all-photos');
+                const data = await response.json();
+                allPhotos = data.photos;
+                searchRoads(); // Initial search to show all roads
+            } catch (error) {
+                showMessage('Error loading photos: ' + error.message, 'error');
+            }
+        }
+
+        async function searchRoads() {
+            const roadName = document.getElementById('roadSearch').value.toLowerCase();
+            const endDate = document.getElementById('endDateSearch').value;
+            
+            // Group photos by road name
+            const roadGroups = {};
+            allPhotos.forEach(p => {
+                if (!roadGroups[p.roadName]) {
+                    roadGroups[p.roadName] = {
+                        roadName: p.roadName,
+                        totalBudget: 0,
+                        photoCount: 0,
+                        surveyEndDate: null,
+                        stage: p.stage || 'survey',
+                        contractor: p.contractor || null,
+                        repairDate: p.repairDate || null,
+                        photos: []
+                    };
+                }
+                roadGroups[p.roadName].totalBudget += (p.roadBudget || 0);
+                roadGroups[p.roadName].photoCount += 1;
+                roadGroups[p.roadName].photos.push(p);
+                
+                // Get the latest survey end date
+                if (p.surveyEndDate && (!roadGroups[p.roadName].surveyEndDate || new Date(p.surveyEndDate) > new Date(roadGroups[p.roadName].surveyEndDate))) {
+                    roadGroups[p.roadName].surveyEndDate = p.surveyEndDate;
+                }
+            });
+
+            // Filter roads based on search criteria
+            let filteredRoads = Object.values(roadGroups);
+            
+            if (roadName) {
+                filteredRoads = filteredRoads.filter(road => 
+                    road.roadName.toLowerCase().includes(roadName)
+                );
+            }
+            
+            if (endDate) {
+                filteredRoads = filteredRoads.filter(road => {
+                    if (!road.surveyEndDate) return false;
+                    const roadDate = new Date(road.surveyEndDate);
+                    const searchDate = new Date(endDate);
+                    return roadDate <= searchDate;
+                });
+            }
+
+            displaySearchResults(filteredRoads);
+        }
+
+        // Add real-time search as you type
+        document.getElementById('roadSearch').addEventListener('input', function() {
+            searchRoads();
+        });
+
+        // Add real-time search for date
+        document.getElementById('endDateSearch').addEventListener('change', function() {
+            searchRoads();
+        });
+
+        function displaySearchResults(roads) {
+            const container = document.getElementById('roadsList');
+            
+            if (!roads || roads.length === 0) {
+                container.innerHTML = '<div class="no-roads">No completed surveys found</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            
+            roads.forEach(road => {
+                const card = document.createElement('div');
+                card.className = 'road-card';
+                card.innerHTML = `
+                    <div class="road-name">${road.roadName}</div>
+                    <div class="road-details">
+                        <strong>Total Budget:</strong> $${road.totalBudget.toLocaleString()}<br>
+                        <strong>Photo Count:</strong> ${road.photoCount}<br>
+                        <strong>Survey End Date:</strong> ${road.surveyEndDate ? new Date(road.surveyEndDate).toLocaleDateString() : 'Not set'}<br>
+                        <strong>Current Stage:</strong> ${road.stage || 'survey'}
+                    </div>
+                    <div class="road-status status-${road.stage || 'completed'}">${road.stage || 'completed'}</div>
+                    
+                    ${road.stage === 'approved' ? `
+                        <div class="assignment-form">
+                            <h4>Assign Contractor</h4>
+                            <select id="contractor-${road.roadName}">
+                                <option value="">Select Contractor</option>
+                            </select>
+                            <input type="date" id="repair-date-${road.roadName}" placeholder="Repair Date">
+                            <button onclick="approveRoad('${road.roadName}')" class="btn btn-success">Assign Contractor</button>
+                        </div>
+                    ` : road.stage === 'in_repair' ? `
+                        <div class="road-details">
+                            <strong>Assigned Contractor:</strong> ${road.contractor || 'Not assigned'}<br>
+                            <strong>Repair Date:</strong> ${road.repairDate ? new Date(road.repairDate).toLocaleDateString() : 'Not set'}
+                        </div>
+                    ` : ''}
+                `;
+                container.appendChild(card);
+                
+                if (road.stage === 'approved') {
+                    loadContractorsForRoad(road.roadName);
+                }
+            });
+        }
+
+        async function loadContractorsForRoad(roadName) {
+            try {
+                const response = await fetch('/contractors');
+                const contractors = await response.json();
+                const select = document.getElementById(`contractor-${roadName}`);
+                
+                contractors.forEach(contractor => {
+                    if (contractor.active) {
+                        const option = document.createElement('option');
+                        option.value = contractor._id;
+                        option.textContent = contractor.company_name;
+                        select.appendChild(option);
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading contractors:', error);
+            }
+        }
+
+        async function approveRoad(roadName) {
+            const contractorId = document.getElementById(`contractor-${roadName}`).value;
+            const repairDate = document.getElementById(`repair-date-${roadName}`).value;
+            
+            if (!contractorId || !repairDate) {
+                showMessage('Please select contractor and repair date', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/manager-approve/${roadName}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contractor: contractorId,
+                        repairDate: repairDate
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showMessage('Contractor assigned successfully!', 'success');
+                    searchRoads(); // Refresh the list
+                } else {
+                    showMessage(result.message || 'Assignment failed', 'error');
+                }
+            } catch (error) {
+                showMessage('Network error. Please try again.', 'error');
+            }
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = message;
+            
+            setTimeout(() => {
+                messageDiv.textContent = '';
+                messageDiv.className = '';
+            }, 5000);
+        }
+
+        // Load initial data
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAllPhotos(); // Load all photos and display roads
+        });
+    </script>
+</body>
+</html> 

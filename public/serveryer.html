@@ -1,0 +1,1887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Surveyor Dashboard - Road Damage Report</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    .section {
+      background: #f8f9fa;
+      padding: 25px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+    }
+
+    .section h2 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 1.5em;
+    }
+
+    .road-selection {
+      margin-bottom: 30px;
+    }
+
+    .road-select {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #e1e5e9;
+      border-radius: 10px;
+      font-size: 16px;
+      margin-bottom: 15px;
+    }
+
+    .road-info {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      border-left: 4px solid #667eea;
+      margin-bottom: 20px;
+    }
+
+    .road-name {
+      font-size: 1.3em;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .road-details {
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-top: 10px;
+    }
+
+    .status-assigned {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status-approved {
+      background: #d1ecf1;
+      color: #0c5460;
+    }
+
+    .status-in_progress {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .camera-section {
+      text-align: center;
+    }
+
+    #video {
+      width: 100%;
+      max-width: 640px;
+      height: auto;
+      border: 2px solid #e1e5e9;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    #canvas {
+      width: 100%;
+      max-width: 640px;
+      height: auto;
+      border: 2px solid #e1e5e9;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      display: none;
+    }
+
+    .camera-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .camera-buttons .btn {
+      flex: 1;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 10px;
+      transition: transform 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-success {
+      background: #4CAF50;
+    }
+
+    .btn-warning {
+      background: #ff9800;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e1e5e9;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s ease;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .message {
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .warning {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+
+    .photos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .photo-card {
+      background: white;
+      border: 2px solid #e1e5e9;
+      border-radius: 12px;
+      padding: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .photo-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .photo-img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .photo-details {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .back-btn {
+      background: #666;
+      margin-bottom: 20px;
+    }
+
+    .rejected-photos {
+      margin-top: 30px;
+    }
+
+    .edit-form {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 15px;
+    }
+
+    .no-photos {
+      text-align: center;
+      color: #666;
+      font-style: italic;
+      padding: 40px;
+      grid-column: 1 / -1;
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+      background-color: white;
+      margin: 5% auto;
+      padding: 30px;
+      border-radius: 15px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .close {
+      position: absolute;
+      right: 20px;
+      top: 15px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .close:hover {
+      color: #000;
+    }
+
+    .modal-image {
+      width: 100%;
+      max-height: 300px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .modal-details {
+      line-height: 1.6;
+    }
+
+    .modal-details h3 {
+      color: #333;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 10px;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .detail-label {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .detail-value {
+      color: #666;
+      text-align: right;
+    }
+
+    /* Status indicators */
+    .status-pending {
+      color: #856404;
+      background: #fff3cd;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-approved {
+      color: #155724;
+      background: #d4edda;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-rejected {
+      color: #721c24;
+      background: #f8d7da;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .officer-comment {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      border-left: 4px solid #667eea;
+    }
+
+    .officer-comment h4 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    /* Edit modal specific styles */
+    #editPhotoContent h3 {
+      color: #333;
+      margin-bottom: 20px;
+      text-align: center;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 10px;
+    }
+
+    #editPhotoForm .form-group {
+      margin-bottom: 20px;
+    }
+
+    #editPhotoForm label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+    }
+
+    #editPhotoForm select,
+    #editPhotoForm textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e1e5e9;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s ease;
+    }
+
+    #editPhotoForm select:focus,
+    #editPhotoForm textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    /* Filter and Pagination Styles */
+    .filters-section {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #e1e5e9;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .filter-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .filter-group {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .filter-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: #333;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .filter-group input,
+    .filter-group select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .report-actions {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      gap: 10px;
+    }
+
+    .pagination-info {
+      text-align: center;
+      margin-bottom: 15px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .pagination-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .pagination-controls .btn {
+      padding: 8px 15px;
+      font-size: 14px;
+    }
+
+    #myPhotosPageInfo,
+    #rejectedPageInfo {
+      font-weight: 600;
+      color: #333;
+      min-width: 100px;
+      text-align: center;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .filter-row {
+        flex-direction: column;
+      }
+      
+      .filter-group {
+        min-width: auto;
+      }
+      
+      .report-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .pagination-controls {
+        flex-direction: column;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📸 Surveyor Dashboard</h1>
+      <p>Capture and manage road damage photos</p>
+    </div>
+
+    <div class="content">
+      <button onclick="window.location.href='index.html'" class="btn back-btn">← Back to Login</button>
+
+      <div id="message"></div>
+
+      <div class="section road-selection">
+        <h2>🛣️ Select Assigned Road</h2>
+        <select id="roadSelect" class="road-select">
+          <option value="">Select a road to survey...</option>
+        </select>
+        <div id="roadInfo"></div>
+      </div>
+
+      <div class="section camera-section" id="cameraSection" style="display: none;">
+        <h2>📷 Capture Photo</h2>
+        <video id="video" autoplay muted></video>
+        <canvas id="canvas"></canvas>
+        <div class="camera-buttons">
+          <button id="startCameraBtn" class="btn">🎥 Start Camera</button>
+          <button id="captureBtn" class="btn">📸 Capture Photo</button>
+        </div>
+      </div>
+
+      <div class="section" id="uploadSection" style="display: none;">
+        <h2>📤 Upload Photo</h2>
+        <form id="uploadForm">
+          <div class="form-group">
+            <label for="damageClass">Damage Class *</label>
+    <select id="damageClass" required>
+      <option value="">Select Damage Class</option>
+    </select>
+          </div>
+
+          <div class="form-group">
+            <label for="comment">Comment</label>
+            <textarea id="comment" rows="3" placeholder="Enter any additional comments..."></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="surveyStartDate">Survey Start Date *</label>
+              <input type="date" id="surveyStartDate" required>
+            </div>
+            <div class="form-group">
+              <label for="surveyEndDate">Survey End Date *</label>
+              <input type="date" id="surveyEndDate" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="locationDisplay">Location</label>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <input type="text" id="locationDisplay" readonly style="flex: 1;">
+              <button type="button" onclick="getCurrentLocation()" class="btn" style="margin: 0; padding: 8px 15px; font-size: 12px;">🔄 Refresh GPS</button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn">📤 Upload Photo</button>
+  </form>
+      </div>
+
+      <div class="section">
+        <h2>📋 My Photos</h2>
+        
+        <!-- Filters for My Photos -->
+        <div class="filters-section">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label for="myPhotosRoadFilter">Road Name:</label>
+              <input type="text" id="myPhotosRoadFilter" placeholder="Filter by road name...">
+            </div>
+            <div class="filter-group">
+              <label for="myPhotosClassFilter">Damage Class:</label>
+              <select id="myPhotosClassFilter">
+                <option value="">All Classes</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="myPhotosStatusFilter">Status:</label>
+              <select id="myPhotosStatusFilter">
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+          </div>
+          <div class="filter-row">
+            <div class="filter-group">
+              <label for="myPhotosStartDate">Start Date:</label>
+              <input type="date" id="myPhotosStartDate">
+            </div>
+            <div class="filter-group">
+              <label for="myPhotosEndDate">End Date:</label>
+              <input type="date" id="myPhotosEndDate">
+            </div>
+            <div class="filter-group">
+              <button onclick="applyMyPhotosFilters()" class="btn" style="margin: 0; padding: 10px 20px;">🔍 Apply Filters</button>
+              <button onclick="clearMyPhotosFilters()" class="btn" style="margin: 0; padding: 10px 20px; background: #666;">🗑️ Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Report Actions -->
+        <div class="report-actions">
+          <button onclick="printMyPhotosReport()" class="btn" style="background: #007bff;">🖨️ Print Report</button>
+          <button onclick="exportMyPhotosPDF()" class="btn" style="background: #28a745;">📄 Export PDF</button>
+          <span id="myPhotosCount" style="margin-left: 15px; color: #666; font-weight: 600;"></span>
+        </div>
+
+        <!-- Pagination Info -->
+        <div class="pagination-info">
+          <span id="myPhotosPaginationInfo"></span>
+        </div>
+
+        <div id="photosList" class="photos-grid"></div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-controls">
+          <button id="myPhotosPrevBtn" onclick="changeMyPhotosPage(-1)" class="btn" style="background: #666;">← Previous</button>
+          <span id="myPhotosPageInfo"></span>
+          <button id="myPhotosNextBtn" onclick="changeMyPhotosPage(1)" class="btn" style="background: #666;">Next →</button>
+        </div>
+      </div>
+
+      <div class="section rejected-photos">
+        <h2>❌ Rejected Photos (Need Editing)</h2>
+        
+        <!-- Filters for Rejected Photos -->
+        <div class="filters-section">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label for="rejectedRoadFilter">Road Name:</label>
+              <input type="text" id="rejectedRoadFilter" placeholder="Filter by road name...">
+            </div>
+            <div class="filter-group">
+              <label for="rejectedClassFilter">Damage Class:</label>
+              <select id="rejectedClassFilter">
+                <option value="">All Classes</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="rejectedStartDate">Start Date:</label>
+              <input type="date" id="rejectedStartDate">
+            </div>
+            <div class="filter-group">
+              <label for="rejectedEndDate">End Date:</label>
+              <input type="date" id="rejectedEndDate">
+            </div>
+          </div>
+          <div class="filter-row">
+            <div class="filter-group">
+              <button onclick="applyRejectedFilters()" class="btn" style="margin: 0; padding: 10px 20px;">🔍 Apply Filters</button>
+              <button onclick="clearRejectedFilters()" class="btn" style="margin: 0; padding: 10px 20px; background: #666;">🗑️ Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Report Actions -->
+        <div class="report-actions">
+          <button onclick="printRejectedReport()" class="btn" style="background: #007bff;">🖨️ Print Report</button>
+          <button onclick="exportRejectedPDF()" class="btn" style="background: #28a745;">📄 Export PDF</button>
+          <span id="rejectedCount" style="margin-left: 15px; color: #666; font-weight: 600;"></span>
+        </div>
+
+        <!-- Pagination Info -->
+        <div class="pagination-info">
+          <span id="rejectedPaginationInfo"></span>
+        </div>
+
+        <div id="rejectedPhotosList" class="photos-grid"></div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-controls">
+          <button id="rejectedPrevBtn" onclick="changeRejectedPage(-1)" class="btn" style="background: #666;">← Previous</button>
+          <span id="rejectedPageInfo"></span>
+          <button id="rejectedNextBtn" onclick="changeRejectedPage(1)" class="btn" style="background: #666;">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Photo Details Modal -->
+  <div id="photoModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closePhotoModal()">&times;</span>
+      <div id="modalContent">
+        <!-- Modal content will be populated by JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Photo Modal -->
+  <div id="editPhotoModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeEditPhotoModal()">&times;</span>
+      <div id="editPhotoContent">
+        <h3>✏️ Edit Photo Details</h3>
+        <form id="editPhotoForm">
+          <div class="form-group">
+            <label for="editRoadNameSelect">Road Name:</label>
+            <select id="editRoadNameSelect" required>
+              <option value="">Select road name...</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="editDamageClassSelect">Damage Class:</label>
+            <select id="editDamageClassSelect" required>
+              <option value="">Select damage class...</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="editReasonText">Edit Reason:</label>
+            <textarea id="editReasonText" rows="3" placeholder="Enter reason for edit..." required></textarea>
+          </div>
+          
+          <div style="text-align: center; margin-top: 20px;">
+            <button type="submit" class="btn btn-success" style="margin-right: 10px;">Submit for Approval</button>
+            <button type="button" onclick="closeEditPhotoModal()" class="btn" style="background: #666;">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentUser = null;
+    let selectedRoad = null;
+    let stream = null;
+    let currentLocation = null; // Store GPS coordinates
+
+    // Pagination and filtering variables
+    let allMyPhotos = [];
+    let filteredMyPhotos = [];
+    let currentMyPhotosPage = 1;
+    const myPhotosPerPage = 10;
+
+    let allRejectedPhotos = [];
+    let filteredRejectedPhotos = [];
+    let currentRejectedPage = 1;
+    const rejectedPerPage = 10;
+
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const captureBtn = document.getElementById('captureBtn');
+    const startCameraBtn = document.getElementById('startCameraBtn');
+
+    // Add logout function to clear wrong user data
+    function logout() {
+      localStorage.removeItem('user');
+      window.location.href = 'index.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Load user data after DOM is ready
+      currentUser = JSON.parse(localStorage.getItem('user'));
+      
+      // Check if user is logged in and is a surveyor
+      if (!currentUser) {
+        console.log('No user found in localStorage, redirecting to login');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      // Debug: Show current user info immediately
+      console.log('=== USER DEBUG INFO ===');
+      console.log('Current user object:', currentUser);
+      console.log('User email:', currentUser?.email);
+      console.log('User role:', currentUser?.role);
+      console.log('Role type:', typeof currentUser?.role);
+      console.log('Role comparison:', currentUser?.role === 'Surveyor');
+      console.log('========================');
+
+      // More flexible role checking
+      if (!currentUser.role || (currentUser.role !== 'Surveyor' && currentUser.role !== 'surveyor' && currentUser.role !== 'SURVEYOR')) {
+        console.error('Role validation failed. Expected: Surveyor, Got:', currentUser.role);
+        alert('Access denied. Only surveyors can view this page. Your role is: ' + currentUser.role);
+        localStorage.removeItem('user'); // Clear invalid user data
+        window.location.href = 'index.html';
+        return;
+      }
+
+      // Add logout button to header
+      const header = document.querySelector('.header');
+      const logoutBtn = document.createElement('button');
+      logoutBtn.className = 'btn';
+      logoutBtn.style.position = 'absolute';
+      logoutBtn.style.top = '20px';
+      logoutBtn.style.right = '20px';
+      logoutBtn.style.background = '#dc3545';
+      logoutBtn.textContent = 'Logout';
+      logoutBtn.onclick = logout;
+      header.style.position = 'relative';
+      header.appendChild(logoutBtn);
+
+      // Add user info display
+      const userInfo = document.createElement('div');
+      userInfo.style.position = 'absolute';
+      userInfo.style.top = '20px';
+      userInfo.style.left = '20px';
+      userInfo.style.color = 'white';
+      userInfo.style.fontSize = '14px';
+      userInfo.innerHTML = `Logged in as: ${currentUser.fullname} (${currentUser.email})`;
+      header.appendChild(userInfo);
+
+      loadAssignedRoads();
+      loadDamageClasses();
+      loadMyPhotos();
+      loadRejectedPhotos();
+    });
+
+    document.getElementById('roadSelect').addEventListener('change', (e) => {
+      const roadId = e.target.value;
+      if (roadId) {
+        loadRoadInfo(roadId);
+      } else {
+        document.getElementById('roadInfo').innerHTML = '';
+        document.getElementById('cameraSection').style.display = 'none';
+      }
+    });
+
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      if (!selectedRoad) {
+        showMessage('Please select a road first', 'error');
+        return;
+      }
+
+      const surveyStartDate = document.getElementById('surveyStartDate').value;
+      const surveyEndDate = document.getElementById('surveyEndDate').value;
+
+      if (!surveyStartDate || !surveyEndDate) {
+        showMessage('Please fill in both survey start and end dates', 'error');
+        return;
+      }
+
+      if (surveyStartDate > surveyEndDate) {
+        showMessage('Survey start date cannot be after end date', 'error');
+        return;
+      }
+
+      const canvas = document.getElementById('canvas');
+      const imageData = canvas.toDataURL('image/jpeg');
+
+      const formData = {
+        imageData,
+        userId: currentUser.userId,
+        fullname: currentUser.fullname,
+        email: currentUser.email,
+        roadName: selectedRoad.roadName,
+        damageClass: document.getElementById('damageClass').value,
+        comment: document.getElementById('comment').value,
+        localTime: new Date().toLocaleString(),
+        location: currentLocation,
+        surveyStartDate: document.getElementById('surveyStartDate').value,
+        surveyEndDate: document.getElementById('surveyEndDate').value
+      };
+
+      try {
+        const response = await fetch('/upload-photo', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showMessage('Photo uploaded successfully!', 'success');
+          document.getElementById('uploadForm').reset();
+          document.getElementById('uploadSection').style.display = 'none';
+          loadMyPhotos();
+        } else {
+          showMessage(result.message || 'Upload failed', 'error');
+        }
+      } catch (error) {
+        showMessage('Network error. Please try again.', 'error');
+      }
+    });
+
+    async function loadAssignedRoads() {
+      try {
+        console.log('Loading assigned roads for:', currentUser.email);
+        const response = await fetch(`/roads/surveyor/${currentUser.email}`);
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const roads = await response.json();
+        console.log('Assigned roads:', roads);
+
+        const select = document.getElementById('roadSelect');
+        select.innerHTML = '<option value="">Select a road to survey...</option>';
+        
+        if (roads && roads.length > 0) {
+          roads.forEach(road => {
+            const option = document.createElement('option');
+            option.value = road._id;
+            option.textContent = `${road.roadName} (${road.status})`;
+            select.appendChild(option);
+          });
+        } else {
+          // If no roads found, try to get all roads to see if there are any
+          console.log('No assigned roads found, checking all roads...');
+          const allRoadsResponse = await fetch('/roads');
+          const allRoads = await allRoadsResponse.json();
+          console.log('All roads:', allRoads);
+          
+          const assignedToMe = allRoads.filter(road => road.assignedSurveyor === currentUser.email);
+          console.log('Roads assigned to me:', assignedToMe);
+          
+          if (assignedToMe.length > 0) {
+            assignedToMe.forEach(road => {
+              const option = document.createElement('option');
+              option.value = road._id;
+              option.textContent = `${road.roadName} (${road.status})`;
+              select.appendChild(option);
+            });
+          } else {
+            select.innerHTML = '<option value="">No roads assigned to you</option>';
+            showMessage('No roads have been assigned to you yet. Please contact your manager.', 'warning');
+          }
+        }
+      } catch (error) {
+        console.error('Error loading roads:', error);
+        showMessage('Error loading assigned roads: ' + error.message, 'error');
+        
+        // Fallback: try to get all roads
+        try {
+          const allRoadsResponse = await fetch('/roads');
+          const allRoads = await allRoadsResponse.json();
+          const assignedToMe = allRoads.filter(road => road.assignedSurveyor === currentUser.email);
+          
+          const select = document.getElementById('roadSelect');
+          select.innerHTML = '<option value="">Select a road to survey...</option>';
+          
+          if (assignedToMe.length > 0) {
+            assignedToMe.forEach(road => {
+              const option = document.createElement('option');
+              option.value = road._id;
+              option.textContent = `${road.roadName} (${road.status})`;
+              select.appendChild(option);
+            });
+          } else {
+            select.innerHTML = '<option value="">No roads assigned to you</option>';
+            showMessage('No roads have been assigned to you yet. Please contact your manager.', 'warning');
+          }
+        } catch (fallbackError) {
+          console.error('Fallback error:', fallbackError);
+          showMessage('Unable to load roads. Please try refreshing the page.', 'error');
+        }
+      }
+    }
+
+    async function loadRoadInfo(roadId) {
+      try {
+        const response = await fetch(`/roads/surveyor/${currentUser.email}`);
+        const roads = await response.json();
+        selectedRoad = roads.find(road => road._id === roadId);
+
+        if (selectedRoad) {
+          const roadInfo = document.getElementById('roadInfo');
+          roadInfo.innerHTML = `
+            <div class="road-info">
+              <div class="road-name">${selectedRoad.roadName}</div>
+              <div class="road-details">
+                <strong>Description:</strong> ${selectedRoad.description || 'No description'}<br>
+                <strong>Assigned:</strong> ${new Date(selectedRoad.assignedDate).toLocaleDateString()}<br>
+                <strong>Estimated Budget:</strong> $${selectedRoad.estimatedBudget || 'Not set'}
+              </div>
+              <div class="status-badge status-${selectedRoad.status}">${selectedRoad.status.replace('_', ' ')}</div>
+            </div>
+          `;
+
+          if (selectedRoad.status === 'approved') {
+            document.getElementById('cameraSection').style.display = 'block';
+            setDefaultSurveyDates();
+            showMessage('Road approved! You can now start surveying.', 'success');
+          } else if (selectedRoad.status === 'assigned') {
+            showMessage('Road assigned but not yet approved by manager.', 'warning');
+          } else {
+            showMessage(`Road status: ${selectedRoad.status}`, 'warning');
+          }
+        }
+      } catch (error) {
+        console.error('Error loading road info:', error);
+      }
+    }
+
+    async function loadDamageClasses() {
+      try {
+        const response = await fetch('/damage-class');
+        const damageClasses = await response.json();
+
+        const select = document.getElementById('damageClass');
+        select.innerHTML = '<option value="">Select damage class...</option>';
+        
+        damageClasses.forEach(dc => {
+          const option = document.createElement('option');
+          option.value = dc.damageClass;
+          option.textContent = `${dc.damageClass} - ${dc.description} (${dc.repairCost.toLocaleString()} Tsh)`;
+          select.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error loading damage classes:', error);
+      }
+    }
+
+    async function loadMyPhotos() {
+      try {
+        console.log('Loading photos for:', currentUser.email);
+        const response = await fetch('/get-all-photos');
+        const data = await response.json();
+        console.log('All photos data:', data);
+        
+        allMyPhotos = data.photos.filter(photo => photo.email === currentUser.email);
+        console.log('My photos:', allMyPhotos);
+
+        // Populate damage class filter
+        const damageClasses = [...new Set(allMyPhotos.map(photo => photo.damageClass))];
+        const classFilter = document.getElementById('myPhotosClassFilter');
+        classFilter.innerHTML = '<option value="">All Classes</option>';
+        damageClasses.forEach(dc => {
+          const option = document.createElement('option');
+          option.value = dc;
+          option.textContent = dc;
+          classFilter.appendChild(option);
+        });
+
+        // Apply initial filters and render
+        applyMyPhotosFilters();
+      } catch (error) {
+        console.error('Error loading photos:', error);
+        showMessage('Error loading photos: ' + error.message, 'error');
+      }
+    }
+
+    function applyMyPhotosFilters() {
+      const roadFilter = document.getElementById('myPhotosRoadFilter').value.toLowerCase();
+      const classFilter = document.getElementById('myPhotosClassFilter').value;
+      const statusFilter = document.getElementById('myPhotosStatusFilter').value;
+      const startDate = document.getElementById('myPhotosStartDate').value;
+      const endDate = document.getElementById('myPhotosEndDate').value;
+
+      filteredMyPhotos = allMyPhotos.filter(photo => {
+        const matchRoad = !roadFilter || photo.roadName.toLowerCase().includes(roadFilter);
+        const matchClass = !classFilter || photo.damageClass === classFilter;
+        const matchStatus = !statusFilter || photo.approvalStatus === statusFilter;
+        
+        let matchDate = true;
+        if (startDate || endDate) {
+          const photoDate = new Date(photo.dateCreated);
+          if (startDate && photoDate < new Date(startDate)) matchDate = false;
+          if (endDate && photoDate > new Date(endDate)) matchDate = false;
+        }
+
+        return matchRoad && matchClass && matchStatus && matchDate;
+      });
+
+      currentMyPhotosPage = 1;
+      renderMyPhotos();
+    }
+
+    function clearMyPhotosFilters() {
+      document.getElementById('myPhotosRoadFilter').value = '';
+      document.getElementById('myPhotosClassFilter').value = '';
+      document.getElementById('myPhotosStatusFilter').value = '';
+      document.getElementById('myPhotosStartDate').value = '';
+      document.getElementById('myPhotosEndDate').value = '';
+      applyMyPhotosFilters();
+    }
+
+    function renderMyPhotos() {
+      const container = document.getElementById('photosList');
+      container.innerHTML = '';
+
+      if (filteredMyPhotos.length === 0) {
+        container.innerHTML = '<div class="no-photos">No photos found</div>';
+        document.getElementById('myPhotosCount').textContent = '0 photos';
+        document.getElementById('myPhotosPaginationInfo').textContent = '';
+        document.getElementById('myPhotosPageInfo').textContent = '';
+        return;
+      }
+
+      // Calculate pagination
+      const totalPages = Math.ceil(filteredMyPhotos.length / myPhotosPerPage);
+      const startIndex = (currentMyPhotosPage - 1) * myPhotosPerPage;
+      const endIndex = startIndex + myPhotosPerPage;
+      const pagePhotos = filteredMyPhotos.slice(startIndex, endIndex);
+
+      // Update pagination info
+      document.getElementById('myPhotosCount').textContent = `${filteredMyPhotos.length} photos`;
+      document.getElementById('myPhotosPaginationInfo').textContent = 
+        `Showing ${startIndex + 1}-${Math.min(endIndex, filteredMyPhotos.length)} of ${filteredMyPhotos.length} photos`;
+      document.getElementById('myPhotosPageInfo').textContent = `Page ${currentMyPhotosPage} of ${totalPages}`;
+
+      // Update pagination buttons
+      document.getElementById('myPhotosPrevBtn').disabled = currentMyPhotosPage === 1;
+      document.getElementById('myPhotosNextBtn').disabled = currentMyPhotosPage === totalPages;
+
+      // Render photos
+      pagePhotos.forEach(photo => {
+        const card = document.createElement('div');
+        card.className = 'photo-card';
+        card.style.cursor = 'pointer';
+        card.onclick = () => showPhotoDetails(photo);
+        card.innerHTML = `
+          <img src="${photo.photoUrl}" alt="Road damage" class="photo-img">
+          <div class="photo-details">
+            <strong>Road:</strong> ${photo.roadName}<br>
+            <strong>Damage Class:</strong> ${photo.damageClass}<br>
+            <strong>Status:</strong> <span class="status-${photo.approvalStatus}">${photo.approvalStatus}</span><br>
+            <strong>Date:</strong> ${new Date(photo.dateCreated).toLocaleDateString()}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function changeMyPhotosPage(direction) {
+      const totalPages = Math.ceil(filteredMyPhotos.length / myPhotosPerPage);
+      const newPage = currentMyPhotosPage + direction;
+      
+      if (newPage >= 1 && newPage <= totalPages) {
+        currentMyPhotosPage = newPage;
+        renderMyPhotos();
+      }
+    }
+
+    async function loadRejectedPhotos() {
+      try {
+        const response = await fetch(`/rejected-photos/${currentUser.email}`);
+        const data = await response.json();
+
+        allRejectedPhotos = data.photos;
+
+        // Populate damage class filter for rejected photos
+        const damageClasses = [...new Set(allRejectedPhotos.map(photo => photo.damageClass))];
+        const classFilter = document.getElementById('rejectedClassFilter');
+        classFilter.innerHTML = '<option value="">All Classes</option>';
+        damageClasses.forEach(dc => {
+          const option = document.createElement('option');
+          option.value = dc;
+          option.textContent = dc;
+          classFilter.appendChild(option);
+        });
+
+        // Apply initial filters and render
+        applyRejectedFilters();
+      } catch (error) {
+        console.error('Error loading rejected photos:', error);
+        const container = document.getElementById('rejectedPhotosList');
+        container.innerHTML = '<div class="no-photos">Error loading rejected photos</div>';
+      }
+    }
+
+    function applyRejectedFilters() {
+      const roadFilter = document.getElementById('rejectedRoadFilter').value.toLowerCase();
+      const classFilter = document.getElementById('rejectedClassFilter').value;
+      const startDate = document.getElementById('rejectedStartDate').value;
+      const endDate = document.getElementById('rejectedEndDate').value;
+
+      filteredRejectedPhotos = allRejectedPhotos.filter(photo => {
+        const matchRoad = !roadFilter || photo.roadName.toLowerCase().includes(roadFilter);
+        const matchClass = !classFilter || photo.damageClass === classFilter;
+        
+        let matchDate = true;
+        if (startDate || endDate) {
+          const photoDate = new Date(photo.dateCreated);
+          if (startDate && photoDate < new Date(startDate)) matchDate = false;
+          if (endDate && photoDate > new Date(endDate)) matchDate = false;
+        }
+
+        return matchRoad && matchClass && matchDate;
+      });
+
+      currentRejectedPage = 1;
+      renderRejectedPhotos();
+    }
+
+    function clearRejectedFilters() {
+      document.getElementById('rejectedRoadFilter').value = '';
+      document.getElementById('rejectedClassFilter').value = '';
+      document.getElementById('rejectedStartDate').value = '';
+      document.getElementById('rejectedEndDate').value = '';
+      applyRejectedFilters();
+    }
+
+    function renderRejectedPhotos() {
+      const container = document.getElementById('rejectedPhotosList');
+      container.innerHTML = '';
+
+      if (filteredRejectedPhotos.length === 0) {
+        container.innerHTML = '<div class="no-photos">No rejected photos found</div>';
+        document.getElementById('rejectedCount').textContent = '0 photos';
+        document.getElementById('rejectedPaginationInfo').textContent = '';
+        document.getElementById('rejectedPageInfo').textContent = '';
+        return;
+      }
+
+      // Calculate pagination
+      const totalPages = Math.ceil(filteredRejectedPhotos.length / rejectedPerPage);
+      const startIndex = (currentRejectedPage - 1) * rejectedPerPage;
+      const endIndex = startIndex + rejectedPerPage;
+      const pagePhotos = filteredRejectedPhotos.slice(startIndex, endIndex);
+
+      // Update pagination info
+      document.getElementById('rejectedCount').textContent = `${filteredRejectedPhotos.length} photos`;
+      document.getElementById('rejectedPaginationInfo').textContent = 
+        `Showing ${startIndex + 1}-${Math.min(endIndex, filteredRejectedPhotos.length)} of ${filteredRejectedPhotos.length} photos`;
+      document.getElementById('rejectedPageInfo').textContent = `Page ${currentRejectedPage} of ${totalPages}`;
+
+      // Update pagination buttons
+      document.getElementById('rejectedPrevBtn').disabled = currentRejectedPage === 1;
+      document.getElementById('rejectedNextBtn').disabled = currentRejectedPage === totalPages;
+
+      // Render photos
+      pagePhotos.forEach(photo => {
+        const card = document.createElement('div');
+        card.className = 'photo-card';
+        card.style.cursor = 'pointer';
+        card.onclick = () => showPhotoDetails(photo);
+        card.innerHTML = `
+          <img src="${photo.photoUrl}" alt="Road damage" class="photo-img">
+          <div class="photo-details">
+            <strong>Road:</strong> ${photo.roadName}<br>
+            <strong>Damage Class:</strong> ${photo.damageClass}<br>
+            <strong>Status:</strong> <span class="status-${photo.approvalStatus}">${photo.approvalStatus}</span><br>
+            <strong>Officer Comment:</strong> ${photo.officerComment || 'No comment'}<br>
+            <strong>Date:</strong> ${new Date(photo.dateCreated).toLocaleDateString()}
+          </div>
+          <button onclick="event.stopPropagation(); editPhoto('${photo._id}')" class="btn btn-warning" style="margin-top: 10px; width: 100%;">✏️ Edit Photo</button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function changeRejectedPage(direction) {
+      const totalPages = Math.ceil(filteredRejectedPhotos.length / rejectedPerPage);
+      const newPage = currentRejectedPage + direction;
+      
+      if (newPage >= 1 && newPage <= totalPages) {
+        currentRejectedPage = newPage;
+        renderRejectedPhotos();
+      }
+    }
+
+    async function editPhoto(photoId) {
+      // Store the photo ID for the form submission
+      window.currentEditPhotoId = photoId;
+      
+      // Load assigned roads for the dropdown
+      await loadAssignedRoadsForEdit();
+      
+      // Load damage classes for the dropdown
+      await loadDamageClassesForEdit();
+      
+      // Show the edit modal
+      document.getElementById('editPhotoModal').style.display = 'block';
+    }
+
+    async function loadAssignedRoadsForEdit() {
+      try {
+        const response = await fetch(`/roads/surveyor/${currentUser.email}`);
+        const roads = await response.json();
+        
+        const select = document.getElementById('editRoadNameSelect');
+        select.innerHTML = '<option value="">Select road name...</option>';
+        
+        if (roads && roads.length > 0) {
+          roads.forEach(road => {
+            const option = document.createElement('option');
+            option.value = road.roadName;
+            option.textContent = road.roadName;
+            select.appendChild(option);
+          });
+        }
+      } catch (error) {
+        console.error('Error loading roads for edit:', error);
+      }
+    }
+
+    async function loadDamageClassesForEdit() {
+      try {
+        const response = await fetch('/damage-class');
+        const damageClasses = await response.json();
+        
+        const select = document.getElementById('editDamageClassSelect');
+        select.innerHTML = '<option value="">Select damage class...</option>';
+        
+        damageClasses.forEach(dc => {
+          const option = document.createElement('option');
+          option.value = dc.damageClass;
+          option.textContent = `${dc.damageClass} - ${dc.description} (${dc.repairCost.toLocaleString()} Tsh)`;
+          select.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error loading damage classes for edit:', error);
+      }
+    }
+
+    function closeEditPhotoModal() {
+      document.getElementById('editPhotoModal').style.display = 'none';
+      // Reset the form
+      document.getElementById('editPhotoForm').reset();
+      window.currentEditPhotoId = null;
+    }
+
+    async function startCamera() {
+      try {
+        console.log('Starting camera...');
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: 'environment' // Use back camera if available
+          } 
+        });
+        video.srcObject = stream;
+        video.play();
+        console.log('Camera started successfully');
+        showMessage('Camera started! Click "Capture Photo" to take a picture.', 'success');
+        
+        // Get GPS location when camera starts
+        getCurrentLocation();
+      } catch (err) {
+        console.error('Camera error:', err);
+        showMessage('Camera not available: ' + err.message, 'error');
+      }
+    }
+
+    // Function to get current GPS location
+    function getCurrentLocation() {
+      if (navigator.geolocation) {
+        console.log('Getting GPS location...');
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            currentLocation = {
+              street: selectedRoad ? selectedRoad.roadName : '',
+              city: 'Dar es-Salaam',
+              region: '',
+              country: 'Tanzania',
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude
+            };
+            console.log('GPS location obtained:', currentLocation);
+            showMessage('GPS location captured!', 'success');
+            updateLocationDisplay();
+          },
+          (error) => {
+            console.error('GPS error:', error);
+            currentLocation = { 
+              street: selectedRoad ? selectedRoad.roadName : '',
+              city: 'Dar es-Salaam',
+              region: '',
+              country: 'Tanzania',
+              latitude: 0, 
+              longitude: 0 
+            };
+            showMessage('GPS not available: ' + error.message, 'warning');
+            updateLocationDisplay();
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 60000
+          }
+        );
+      } else {
+        console.log('Geolocation not supported');
+        currentLocation = { 
+          street: selectedRoad ? selectedRoad.roadName : '',
+          city: 'Dar es-Salaam',
+          region: '',
+          country: 'Tanzania',
+          latitude: 0, 
+          longitude: 0 
+        };
+        showMessage('GPS not supported by this browser', 'warning');
+        updateLocationDisplay();
+      }
+    }
+
+    // Function to update location display in upload form
+    function updateLocationDisplay() {
+      const locationDisplay = document.getElementById('locationDisplay');
+      if (locationDisplay && currentLocation) {
+        if (currentLocation.latitude && currentLocation.latitude !== 0) {
+          locationDisplay.value = `${currentLocation.street}, ${currentLocation.city}, ${currentLocation.country} (${currentLocation.latitude.toFixed(6)}, ${currentLocation.longitude.toFixed(6)})`;
+        } else {
+          locationDisplay.value = 'GPS location not available';
+        }
+      }
+    }
+
+    captureBtn.onclick = () => {
+      if (!stream) {
+        showMessage('Please start the camera first!', 'error');
+        return;
+      }
+      
+      try {
+        console.log('Capturing photo...');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0);
+        
+        // Show the captured image
+        canvas.style.display = 'block';
+        video.style.display = 'none';
+        
+        // Refresh GPS location for the captured photo
+        getCurrentLocation();
+        
+        const uploadSection = document.getElementById('uploadSection');
+        if (uploadSection) {
+          uploadSection.style.display = 'block';
+          showMessage('Photo captured! Fill in the details and upload.', 'success');
+      } else {
+          showMessage('Upload section not found!', 'error');
+        }
+        
+        console.log('Photo captured successfully');
+      } catch (error) {
+        console.error('Capture error:', error);
+        showMessage('Error capturing photo: ' + error.message, 'error');
+      }
+    };
+
+    startCameraBtn.onclick = startCamera;
+
+    // Function to show photo details in modal
+    function showPhotoDetails(photo) {
+      const modal = document.getElementById('photoModal');
+      const modalContent = document.getElementById('modalContent');
+      
+      const details = `
+        <img src="${photo.photoUrl}" alt="Road damage" class="modal-image">
+        <div class="modal-details">
+          <h3>📸 Photo Details</h3>
+          
+          <div class="detail-row">
+            <span class="detail-label">Road Name:</span>
+            <span class="detail-value">${photo.roadName}</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="detail-label">Damage Class:</span>
+            <span class="detail-value">${photo.damageClass}</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="detail-label">Status:</span>
+            <span class="detail-value">
+              <span class="status-${photo.approvalStatus}">${photo.approvalStatus}</span>
+            </span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="detail-label">Upload Date:</span>
+            <span class="detail-value">${new Date(photo.dateCreated).toLocaleString()}</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="detail-label">Local Time:</span>
+            <span class="detail-value">${photo.localTime || 'Not recorded'}</span>
+          </div>
+          
+          <div class="detail-row">
+            <span class="detail-label">Location:</span>
+            <span class="detail-value">
+              ${photo.location && photo.location.street ? `${photo.location.street}, ${photo.location.city}, ${photo.location.country}` : photo.roadName}${photo.location && photo.location.latitude && photo.location.latitude !== 0 ? ` (${photo.location.latitude.toFixed(6)}, ${photo.location.longitude.toFixed(6)})` : ''}
+            </span>
+          </div>
+          
+          ${photo.roadBudget ? `
+            <div class="detail-row">
+              <span class="detail-label">Budget:</span>
+              <span class="detail-value">${photo.roadBudget.toLocaleString()} Tsh</span>
+            </div>
+          ` : ''}
+          
+          ${photo.comment ? `
+            <div class="detail-row">
+              <span class="detail-label">Comment:</span>
+              <span class="detail-value">${photo.comment}</span>
+            </div>
+          ` : ''}
+          
+          ${photo.officerComment ? `
+            <div class="officer-comment">
+              <h4>👮 Officer Comment:</h4>
+              <p>${photo.officerComment}</p>
+            </div>
+          ` : ''}
+          
+          ${photo.validatedByOfficerId ? `
+            <div class="detail-row">
+              <span class="detail-label">Validated By:</span>
+              <span class="detail-value">${photo.validatedByOfficerId}</span>
+            </div>
+          ` : ''}
+          
+          ${photo.validationDate ? `
+            <div class="detail-row">
+              <span class="detail-label">Validation Date:</span>
+              <span class="detail-value">${new Date(photo.validationDate).toLocaleString()}</span>
+            </div>
+          ` : ''}
+          
+          ${photo.contractor ? `
+            <div class="detail-row">
+              <span class="detail-label">Assigned Contractor:</span>
+              <span class="detail-value">${photo.contractor}</span>
+            </div>
+          ` : ''}
+          
+          ${photo.repairDate ? `
+            <div class="detail-row">
+              <span class="detail-label">Repair Date:</span>
+              <span class="detail-value">${new Date(photo.repairDate).toLocaleDateString()}</span>
+            </div>
+          ` : ''}
+          
+          ${photo.stage ? `
+            <div class="detail-row">
+              <span class="detail-label">Current Stage:</span>
+              <span class="detail-value">${photo.stage}</span>
+            </div>
+          ` : ''}
+        </div>
+      `;
+      
+      modalContent.innerHTML = details;
+      modal.style.display = 'block';
+    }
+
+    // Function to close photo modal
+    function closePhotoModal() {
+      const modal = document.getElementById('photoModal');
+      modal.style.display = 'none';
+    }
+
+    // Close modal when clicking outside of it
+    window.onclick = function(event) {
+      const modal = document.getElementById('photoModal');
+      const editModal = document.getElementById('editPhotoModal');
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
+      if (event.target === editModal) {
+        closeEditPhotoModal();
+      }
+    }
+
+    // Add form submission handler for edit photo modal
+    document.getElementById('editPhotoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const photoId = window.currentEditPhotoId;
+      if (!photoId) {
+        showMessage('No photo selected for editing', 'error');
+        return;
+      }
+
+      const newRoadName = document.getElementById('editRoadNameSelect').value;
+      const newDamageClass = document.getElementById('editDamageClassSelect').value;
+      const editReason = document.getElementById('editReasonText').value;
+
+      if (!newRoadName || !newDamageClass || !editReason.trim()) {
+        showMessage('Please fill in all required fields', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/edit-photo/${photoId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            roadName: newRoadName,
+            damageClass: newDamageClass,
+            editReason,
+            email: currentUser.email
+          })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          showMessage('Photo updated successfully!', 'success');
+          closeEditPhotoModal();
+          loadRejectedPhotos();
+          loadMyPhotos();
+      } else {
+          showMessage(result.message || 'Update failed', 'error');
+        }
+      } catch (error) {
+        showMessage('Network error. Please try again.', 'error');
+      }
+    });
+
+    function showMessage(message, type) {
+      const messageDiv = document.getElementById('message');
+      messageDiv.className = `message ${type}`;
+      messageDiv.textContent = message;
+      
+      setTimeout(() => {
+        messageDiv.textContent = '';
+        messageDiv.className = '';
+      }, 5000);
+    }
+
+    // Print and Export Functions for My Photos
+    function printMyPhotosReport() {
+      const printWindow = window.open('', '_blank');
+      const title = `My Photos Report - ${currentUser.fullname}`;
+      const photos = filteredMyPhotos;
+      
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>${title}</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; }
+              h1 { color: #333; text-align: center; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
+              .photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px; }
+              .photo-item { border: 1px solid #ddd; padding: 15px; border-radius: 8px; }
+              .photo-item img { width: 100%; height: 150px; object-fit: cover; border-radius: 5px; margin-bottom: 10px; }
+              .photo-details { font-size: 12px; line-height: 1.4; }
+              .status { padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; }
+              .status-pending { background: #fff3cd; color: #856404; }
+              .status-approved { background: #d4edda; color: #155724; }
+              .status-rejected { background: #f8d7da; color: #721c24; }
+              .summary { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+              @media print { .photo-grid { grid-template-columns: repeat(2, 1fr); } }
+            </style>
+          </head>
+          <body>
+            <h1>${title}</h1>
+            <div class="summary">
+              <strong>Total Photos:</strong> ${photos.length}<br>
+              <strong>Generated:</strong> ${new Date().toLocaleString()}<br>
+              <strong>Surveyor:</strong> ${currentUser.fullname} (${currentUser.email})
+            </div>
+            <div class="photo-grid">
+              ${photos.map(photo => `
+                <div class="photo-item">
+                  <img src="${photo.photoUrl}" alt="Road damage">
+                  <div class="photo-details">
+                    <strong>Road:</strong> ${photo.roadName}<br>
+                    <strong>Damage Class:</strong> ${photo.damageClass}<br>
+                    <strong>Status:</strong> <span class="status status-${photo.approvalStatus}">${photo.approvalStatus}</span><br>
+                    <strong>Date:</strong> ${new Date(photo.dateCreated).toLocaleDateString()}<br>
+                    <strong>Budget:</strong> ${photo.roadBudget ? photo.roadBudget.toLocaleString() + ' Tsh' : 'N/A'}<br>
+                    ${photo.comment ? `<strong>Comment:</strong> ${photo.comment}<br>` : ''}
+                    ${photo.officerComment ? `<strong>Officer Comment:</strong> ${photo.officerComment}<br>` : ''}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </body>
+        </html>
+      `);
+      
+      printWindow.document.close();
+      printWindow.print();
+    }
+
+    async function exportMyPhotosPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const photos = filteredMyPhotos;
+      
+      doc.setFontSize(16);
+      doc.text(`My Photos Report - ${currentUser.fullname}`, 20, 20);
+      
+      doc.setFontSize(12);
+      doc.text(`Total Photos: ${photos.length}`, 20, 35);
+      doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 45);
+      doc.text(`Surveyor: ${currentUser.fullname} (${currentUser.email})`, 20, 55);
+      
+      let y = 75;
+      photos.forEach((photo, index) => {
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+        
+        const lines = [
+          `Photo ${index + 1}:`,
+          `Road: ${photo.roadName}`,
+          `Damage Class: ${photo.damageClass}`,
+          `Status: ${photo.approvalStatus}`,
+          `Date: ${new Date(photo.dateCreated).toLocaleDateString()}`,
+          `Budget: ${photo.roadBudget ? photo.roadBudget.toLocaleString() + ' Tsh' : 'N/A'}`,
+          ...(photo.comment ? [`Comment: ${photo.comment}`] : []),
+          ...(photo.officerComment ? [`Officer Comment: ${photo.officerComment}`] : [])
+        ];
+        
+        lines.forEach((line, lineIndex) => {
+          doc.text(line, 20, y + (lineIndex * 6));
+        });
+        
+        y += lines.length * 6 + 10;
+      });
+      
+      doc.save(`my_photos_report_${Date.now()}.pdf`);
+    }
+
+    // Print and Export Functions for Rejected Photos
+    function printRejectedReport() {
+      const printWindow = window.open('', '_blank');
+      const title = `Rejected Photos Report - ${currentUser.fullname}`;
+      const photos = filteredRejectedPhotos;
+      
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>${title}</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; }
+              h1 { color: #333; text-align: center; border-bottom: 2px solid #dc3545; padding-bottom: 10px; }
+              .photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px; }
+              .photo-item { border: 1px solid #ddd; padding: 15px; border-radius: 8px; border-left: 4px solid #dc3545; }
+              .photo-item img { width: 100%; height: 150px; object-fit: cover; border-radius: 5px; margin-bottom: 10px; }
+              .photo-details { font-size: 12px; line-height: 1.4; }
+              .status-rejected { background: #f8d7da; color: #721c24; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; }
+              .summary { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+              @media print { .photo-grid { grid-template-columns: repeat(2, 1fr); } }
+            </style>
+          </head>
+          <body>
+            <h1>${title}</h1>
+            <div class="summary">
+              <strong>Total Rejected Photos:</strong> ${photos.length}<br>
+              <strong>Generated:</strong> ${new Date().toLocaleString()}<br>
+              <strong>Surveyor:</strong> ${currentUser.fullname} (${currentUser.email})
+            </div>
+            <div class="photo-grid">
+              ${photos.map(photo => `
+                <div class="photo-item">
+                  <img src="${photo.photoUrl}" alt="Road damage">
+                  <div class="photo-details">
+                    <strong>Road:</strong> ${photo.roadName}<br>
+                    <strong>Damage Class:</strong> ${photo.damageClass}<br>
+                    <strong>Status:</strong> <span class="status-rejected">${photo.approvalStatus}</span><br>
+                    <strong>Date:</strong> ${new Date(photo.dateCreated).toLocaleDateString()}<br>
+                    <strong>Budget:</strong> ${photo.roadBudget ? photo.roadBudget.toLocaleString() + ' Tsh' : 'N/A'}<br>
+                    <strong>Officer Comment:</strong> ${photo.officerComment || 'No comment'}<br>
+                    ${photo.comment ? `<strong>Comment:</strong> ${photo.comment}<br>` : ''}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </body>
+        </html>
+      `);
+      
+      printWindow.document.close();
+      printWindow.print();
+    }
+
+    async function exportRejectedPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const photos = filteredRejectedPhotos;
+      
+      doc.setFontSize(16);
+      doc.text(`Rejected Photos Report - ${currentUser.fullname}`, 20, 20);
+      
+      doc.setFontSize(12);
+      doc.text(`Total Rejected Photos: ${photos.length}`, 20, 35);
+      doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 45);
+      doc.text(`Surveyor: ${currentUser.fullname} (${currentUser.email})`, 20, 55);
+      
+      let y = 75;
+      photos.forEach((photo, index) => {
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+        
+        const lines = [
+          `Rejected Photo ${index + 1}:`,
+          `Road: ${photo.roadName}`,
+          `Damage Class: ${photo.damageClass}`,
+          `Status: ${photo.approvalStatus}`,
+          `Date: ${new Date(photo.dateCreated).toLocaleDateString()}`,
+          `Budget: ${photo.roadBudget ? photo.roadBudget.toLocaleString() + ' Tsh' : 'N/A'}`,
+          `Officer Comment: ${photo.officerComment || 'No comment'}`,
+          ...(photo.comment ? [`Comment: ${photo.comment}`] : [])
+        ];
+        
+        lines.forEach((line, lineIndex) => {
+          doc.text(line, 20, y + (lineIndex * 6));
+        });
+        
+        y += lines.length * 6 + 10;
+      });
+      
+      doc.save(`rejected_photos_report_${Date.now()}.pdf`);
+    }
+
+    function setDefaultSurveyDates() {
+      const surveyStartDate = document.getElementById('surveyStartDate');
+      const surveyEndDate = document.getElementById('surveyEndDate');
+      const today = new Date().toISOString().split('T')[0];
+      surveyStartDate.value = today;
+      surveyEndDate.value = today;
+    }
+
+    // Add date validation
+    document.getElementById('surveyStartDate').addEventListener('change', function() {
+      const startDate = this.value;
+      const endDate = document.getElementById('surveyEndDate').value;
+      
+      if (endDate && startDate > endDate) {
+        document.getElementById('surveyEndDate').value = startDate;
+      }
+    });
+
+    document.getElementById('surveyEndDate').addEventListener('change', function() {
+      const endDate = this.value;
+      const startDate = document.getElementById('surveyStartDate').value;
+      
+      if (startDate && endDate < startDate) {
+        alert('Survey end date cannot be before start date');
+        this.value = startDate;
+      }
+    });
+  </script>
+</body>
+</html>

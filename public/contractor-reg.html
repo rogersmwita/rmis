@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contractor Registration - Road Damage Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .success {
+            background: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .error {
+            background: #f44336;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .back-btn {
+            background: #666;
+            margin-top: 15px;
+        }
+
+        .contractors-list {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e1e5e9;
+        }
+
+        .contractors-list h2 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .contractor-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .contractor-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .contractor-details {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .status-active {
+            color: #4CAF50;
+            font-weight: 600;
+        }
+
+        .status-inactive {
+            color: #f44336;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏗️ Contractor Registration</h1>
+            <p>Register new contractors in the system</p>
+        </div>
+
+        <div id="message"></div>
+
+        <form id="contractorForm">
+            <div class="form-group">
+                <label for="companyName">Company Name *</label>
+                <input type="text" id="companyName" required>
+            </div>
+
+            <div class="form-group">
+                <label for="tin">TIN Number *</label>
+                <input type="text" id="tin" required>
+            </div>
+
+            <div class="form-group">
+                <label for="registerDate">Company Registration Date *</label>
+                <input type="date" id="registerDate" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address *</label>
+                <input type="email" id="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="registerId">Registration ID *</label>
+                <input type="text" id="registerId" required>
+            </div>
+
+            <button type="submit" class="btn">Register Contractor</button>
+        </form>
+
+        <button onclick="window.location.href='admin.html'" class="btn back-btn">← Back to Admin Panel</button>
+
+        <div class="contractors-list">
+            <h2>📋 Registered Contractors</h2>
+            <div id="contractorsList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Load contractors on page load
+        document.addEventListener('DOMContentLoaded', loadContractors);
+
+        document.getElementById('contractorForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                company_name: document.getElementById('companyName').value,
+                tin: document.getElementById('tin').value,
+                company_register_date: document.getElementById('registerDate').value,
+                email: document.getElementById('email').value,
+                register_id: document.getElementById('registerId').value
+            };
+
+            try {
+                const response = await fetch('/contractors', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showMessage('Contractor registered successfully!', 'success');
+                    document.getElementById('contractorForm').reset();
+                    loadContractors();
+                } else {
+                    showMessage(result.message || 'Registration failed', 'error');
+                }
+            } catch (error) {
+                showMessage('Network error. Please try again.', 'error');
+            }
+        });
+
+        async function loadContractors() {
+            try {
+                const response = await fetch('/contractors');
+                const contractors = await response.json();
+
+                const container = document.getElementById('contractorsList');
+                container.innerHTML = '';
+
+                contractors.forEach(contractor => {
+                    const div = document.createElement('div');
+                    div.className = 'contractor-item';
+                    div.innerHTML = `
+                        <div class="contractor-name">${contractor.company_name}</div>
+                        <div class="contractor-details">
+                            TIN: ${contractor.tin} | Email: ${contractor.email}<br>
+                            Registration ID: ${contractor.register_id}<br>
+                            Status: <span class="${contractor.active ? 'status-active' : 'status-inactive'}">
+                                ${contractor.active ? 'Active' : 'Inactive'}
+                            </span>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Error loading contractors:', error);
+            }
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            
+            setTimeout(() => {
+                messageDiv.textContent = '';
+                messageDiv.className = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Officer Panel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .header-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .user-info {
+      color: #666;
+      font-size: 14px;
+    }
+    .logout-btn {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .back-btn {
+      background: #666;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    .officer-actions {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .action-grid {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .action-btn {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+    .action-btn:hover {
+      background: #0056b3;
+    }
+    .icon {
+      font-size: 1.2em;
+    }
+    .filters {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      justify-content: center;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    input, select, button {
+      padding: 10px;
+      font-size: 1em;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      font-size: 14px;
+      text-align: left;
+    }
+    th {
+      background: #f8f9fa;
+      font-weight: 600;
+    }
+    tr:hover {
+      background-color: #e9f0ff;
+      cursor: pointer;
+    }
+    .status-pending {
+      color: #856404;
+      background: #fff3cd;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .status-approved {
+      color: #155724;
+      background: #d4edda;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .status-rejected {
+      color: #721c24;
+      background: #f8d7da;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header-section">
+    <div>
+      <button onclick="window.location.href='index.html'" class="back-btn">← Back to Login</button>
+      <span class="user-info" id="userInfo"></span>
+    </div>
+    <button onclick="logout()" class="logout-btn">Logout</button>
+  </div>
+
+  <h2>👮‍♂️ Officer Dashboard</h2>
+
+  <div class="officer-actions">
+    <h3>🔧 Officer Actions</h3>
+    <div class="action-grid">
+      <button onclick="window.location.href='road-assignment.html'" class="action-btn">
+        <span class="icon">🛣️</span>
+        <span>Road Assignment</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <input type="text" id="filterRoad" placeholder="Filter by Road" />
+    <input type="text" id="filterUser" placeholder="Filter by User Email" />
+    <select id="filterDamage">
+      <option value="">All Damage Classes</option>
+      <option value="A">Class A</option>
+      <option value="B">Class B</option>
+      <option value="C">Class C</option>
+    </select>
+    <input type="date" id="startDate" />
+    <input type="date" id="endDate" />
+    <button onclick="applyFilter()">Apply Filters</button>
+  </div>
+
+  <table id="photoTable">
+    <thead>
+      <tr>
+        <th>Road</th>
+        <th>Damage Class</th>
+        <th>User</th>
+        <th>Date</th>
+        <th>Survey Start</th>
+        <th>Survey End</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="photoBody"></tbody>
+  </table>
+
+  <script>
+    // Check if user is logged in and is an officer
+    let currentUser = JSON.parse(localStorage.getItem('user'));
+    
+    if (!currentUser) {
+      console.log('No user found in localStorage, redirecting to login');
+      window.location.href = 'index.html';
+    }
+
+    // Debug: Show current user info
+    console.log('=== OFFICER USER DEBUG INFO ===');
+    console.log('Current user object:', currentUser);
+    console.log('User email:', currentUser?.email);
+    console.log('User role:', currentUser?.role);
+    console.log('Role comparison:', currentUser?.role === 'Officer');
+    console.log('================================');
+
+    // More flexible role checking
+    if (!currentUser.role || (currentUser.role !== 'Officer' && currentUser.role !== 'officer' && currentUser.role !== 'OFFICER')) {
+      console.error('Role validation failed. Expected: Officer, Got:', currentUser.role);
+      alert('Access denied. Only officers can view this page. Your role is: ' + currentUser.role);
+      localStorage.removeItem('user'); // Clear invalid user data
+      window.location.href = 'index.html';
+    }
+
+    // Add logout function
+    function logout() {
+      localStorage.removeItem('user');
+      window.location.href = 'index.html';
+    }
+
+    // Display user info
+    document.getElementById('userInfo').textContent = `Logged in as: ${currentUser.fullname} (${currentUser.email})`;
+
+    let allPhotos = [];
+
+    async function fetchPhotos() {
+      const res = await fetch('/get-all-photos');
+      const data = await res.json();
+      allPhotos = data.photos;
+      renderPhotos(allPhotos);
+    }
+
+    function applyFilter() {
+      const road = document.getElementById('filterRoad').value.toLowerCase();
+      const email = document.getElementById('filterUser').value.toLowerCase();
+      const damage = document.getElementById('filterDamage').value;
+      const start = document.getElementById('startDate').value;
+      const end = document.getElementById('endDate').value;
+
+      const filtered = allPhotos.filter(p => {
+        const matchRoad = !road || p.roadName.toLowerCase().includes(road);
+        const matchUser = !email || p.email.toLowerCase().includes(email);
+        const matchDamage = !damage || p.damageClass === damage;
+        const matchStart = !start || new Date(p.dateCreated) >= new Date(start);
+        const matchEnd = !end || new Date(p.dateCreated) <= new Date(end);
+        return matchRoad && matchUser && matchDamage && matchStart && matchEnd;
+      });
+
+      renderPhotos(filtered);
+    }
+
+    function renderPhotos(photos) {
+      const tbody = document.getElementById('photoBody');
+      tbody.innerHTML = '';
+      
+      if (photos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No photos found</td></tr>';
+        return;
+      }
+      
+      photos.forEach(p => {
+        const tr = document.createElement('tr');
+        const status = p.approvalStatus || 'pending';
+        const statusClass = `status-${status}`;
+        
+        // Format survey dates with null checks
+        const surveyStartDate = p.surveyStartDate ? new Date(p.surveyStartDate).toLocaleDateString() : 'Not set';
+        const surveyEndDate = p.surveyEndDate ? new Date(p.surveyEndDate).toLocaleDateString() : 'Not set';
+        
+        tr.innerHTML = `
+          <td>${p.roadName}</td>
+          <td>${p.damageClass}</td>
+          <td>${p.email}</td>
+          <td>${new Date(p.dateCreated).toLocaleString()}</td>
+          <td>${surveyStartDate}</td>
+          <td>${surveyEndDate}</td>
+          <td><span class="${statusClass}">${status}</span></td>
+          <td>
+            <button onclick="reviewPhoto('${p._id}')" style="background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 12px;">Review</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function reviewPhoto(photoId) {
+      localStorage.setItem('selectedPhotoId', photoId);
+      window.location.href = 'officerview.html';
+    }
+
+    fetchPhotos();
+  </script>
+</body>
+</html>
